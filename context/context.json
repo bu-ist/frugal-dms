@@ -1,0 +1,60 @@
+{
+  "stack": {
+    "Id": "kuali-dms",
+    "Account": "770203350335",
+    "Region": "us-east-1",
+    "Tags": {
+      "Service": "research-administration",
+      "Function": "kuali",
+      "Landscape": "stg"
+    }
+  },
+  "serverless": true,
+  "scheduleRateHours": 24,
+  "scheduledRunRetryOnFailure": true,
+  "scheduledRunAbortIfBeyondRedoLogRetention": true,
+  "scheduledRunDurationMinutes": 45,
+  "publicSubnetIds": [
+  	"subnet-07afd7c2e54376dd0",
+  	"subnet-03034a40da92d6d08"
+  ],
+
+  "oracleHost": "stg.db.kualitest.research.bu.edu",
+  "oraclePort": 1521,
+  "oracleUser": "DMS_USER",
+  "oraclePassword": "",
+  "oracleSecretName": "kuali/stg/kuali-oracle-rds-app-password",
+  "oracleSecurityGroupId": "sg-0b8b04f9cf045f812",
+  "oracleVpcId": "vpc-0290de1785982a52f",
+  "oracleLargestLobKB": 180000,
+  "oracleRedoLogRetentionHours": 48,
+  "oracleSubnetIds": [
+    "subnet-0d4acd358fba71d20",
+    "subnet-08afdf870ee85d511"
+  ],
+  "oracleSourceSchemas": [
+    "KCOEUS"
+  ],
+  "oracleTestTables": [
+    { "schemaName": "KCOEUS", "tableNames": [ "DMS_SMOKE_TEST" ] }
+  ],
+
+  
+  "postgresPort": 5432,
+  "postgresDbName": "kuali_db",
+  "postgresSchema": "kl_user",
+  "postgresPassword": "",
+  "postgresInstanceSize": "small",
+  "postgresSecretName": "kuali/stg/kuali-postgres-credentials",
+  "postgresInstanceIngress": [
+    { "cidr": "168.122.78.128/28", "description": "vpn.bu.edu/dbreport Off Campus 1" },
+    { "cidr": "168.122.68.64/26", "description": "vpn.bu.edu/dbreport Off Campus 2" },
+    { "cidr": "168.122.84.240/28", "description": "vpn.bu.edu/dbreport On Campus" },
+    { "cidr": "168.122.81.0/24", "description": "CampusVpnCidr one" },
+    { "cidr": "168.122.82.0/23", "description": "CampusVpnCidr two" },
+    { "cidr": "168.122.76.0/24", "description": "CampusVpnCidr three" },
+    { "cidr": "168.122.68.0/24", "description": "CampusVpnCidr four" },
+    { "cidr": "168.122.69.0/24", "description": "CampusVpnCidr five" },
+    { "cidr": "10.1.0.0/21", "description": "CampusVpnCidr six" }
+  ]
+}

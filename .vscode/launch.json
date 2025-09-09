@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "CDK Debugger (App)",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": ["-r", "${workspaceFolder}/node_modules/ts-node/register/transpile-only"],
+      "args": ["${workspaceFolder}/bin/KualiDms.ts"],
+      "env": { "AWS_PROFILE": "infnprd" }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run current file",
+      "skipFiles": [ "<node_internals>/**" ],
+      "runtimeArgs": ["-r", "${workspaceFolder}/node_modules/ts-node/register/transpile-only"],
+      "args": [ "${file}" ],
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug current file",
+      "skipFiles": [ "<node_internals>/**" ],
+      "runtimeArgs": ["-r", "${workspaceFolder}/node_modules/ts-node/register/transpile-only"],
+      "args": [
+        "${file}"
+      ], 
+      "env": {
+        "AWS_PROFILE": "infnprd",
+        "REGION": "us-east-1",
+        "LANDSCAPE": "dev",
+        "DEBUG": "true"
+      }, 
+      "envFile": "${workspaceFolder}/debug.env"
+    },
+
+  ]
+}
