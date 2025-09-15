@@ -1,9 +1,9 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import { IContext } from '../context/IContext';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export interface AbstractFunctionProps extends NodejsFunctionProps {
   cleanup?: boolean
@@ -29,6 +29,7 @@ export class AbstractFunction extends NodejsFunction {
       const log_group = new LogGroup(this, `${constructId}LogGroup`, {
         logGroupName: `/aws/lambda/${props.functionName}`,
         removalPolicy: RemovalPolicy.DESTROY,
+        retention: RetentionDays.ONE_MONTH
       });
       log_group.grantWrite(this);
     }
