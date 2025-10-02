@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.876.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.901.0",
     "@aws-sdk/client-database-migration-service": "^3.846.0",
     "@aws-sdk/client-ec2": "^3.883.0",
     "@aws-sdk/client-iam": "^3.873.0",

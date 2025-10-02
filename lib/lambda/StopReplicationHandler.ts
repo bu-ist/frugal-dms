@@ -7,6 +7,7 @@ import { StartReplicationHandlerInput } from "./StartReplicationHandler";
 import { DelayedLambdaExecution, PostExecution, ScheduledLambdaInput } from "./timer/DelayedExecution";
 import { EggTimer } from "./timer/EggTimer";
 import { getOffsetDate, getShortIsoString, log, TimeUnit } from "./Utils";
+import { ReplicationCloudWatchLogs } from "./ReplicationLogs";
 
 export type StopReplicationHandlerInput = {
   ReplicationConfigArn: string;
@@ -54,7 +55,7 @@ export const handler = async (event:ScheduledLambdaInput):Promise<any> => {
     const logLastResult = (msg:string) => console.log(`${ReplicationConfigArn}: ${msg}`);
 
     if(hasNeverRun) {
-      logLastResult('has never run. Running a full-load replication now.');
+      logLastResult('Has never run. Running a full-load replication now.');
       await scheduleFullLoadAndCDC(event);
       return;
     }
@@ -106,6 +107,8 @@ export const handler = async (event:ScheduledLambdaInput):Promise<any> => {
     logLastResult(`The last replication succeeded. Scheduling a new replication now.`);
       
     await deleteConfiguration();
+
+    await limitCloudWatchLogRetention(ReplicationConfigArn, 60);
 
     await scheduleCdcOnly(event, replication);
   }
@@ -228,7 +231,34 @@ export const scheduleCdcOnly = async (event:ScheduledLambdaInput, dmsReplication
   await delayedTestExecution.startCountdown(timer, 'start-replication');
 }
 
-
+/**
+ * By default, DMS serverless replications log to CloudWatch Logs with no log retention policy, which means
+ * the logs are kept indefinitely and will pile up. This function can be used to set a log retention policy 
+ * on the log group associated with the specified replication configuration.
+ * @param replicationArn The arn will follow the format:
+ *   arn:aws:dms:[region]:[account nbr]:replication-config:[prefix]-[suffix]
+ *   e.g.: "arn:aws:dms:us-east-1:770203350335:replication-config:kuali-dms-stg-1759384802120"
+ * @param days 
+ */
+export const limitCloudWatchLogRetention = async (replicationArn:string, days:number=60): Promise<void> => {
+  try {
+    let prefix = replicationArn.split(':').pop()?.split('-').slice(0, -1).join('-');
+    if( ! prefix) {
+      throw new Error(`Cannot determine prefix from ARN: ${replicationArn}`);
+    }
+    const suffix = replicationArn.split('-').pop();
+    if( ! /^\d+$/.test(suffix!)) {
+      prefix = `${prefix}-${suffix}`;
+    }
+    const logs = new ReplicationCloudWatchLogs({ prefix, suffix, region: process.env.AWS_REGION });
+    await logs.setRetentionDays(days);
+  }
+  catch(e:any) {
+    // Log the entire error with stack trace for debugging purposes.
+    console.error(`Error setting log retention for replication ${replicationArn}`);
+    console.error(e);
+  }
+}
 
 /**
  * TEST HARNESS
