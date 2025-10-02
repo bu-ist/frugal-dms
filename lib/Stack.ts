@@ -7,10 +7,8 @@ import { IContext } from "../context/IContext";
 import { DmsEndpoints } from "./Endpoint";
 import { PostgresTarget } from './PostgresTarget';
 import { VpcRole } from './Role';
-import { Tasks } from './Tasks';
 import { DmsVpc } from "./Vpc";
 import { StartStopLambdas } from "./lambda/Lambda";
-import { TaskType } from "./lambda/Replication";
 
 
 export type ExtendedStackProps = StackProps & {
@@ -99,16 +97,6 @@ export class FrugalDmsStack extends Stack {
       replicationSubnetGroupIdentifier: `${prefix()}-subnet-group`,
       subnetIds: dmsVpc.privateSubnetIds,
     }).ref;
-
-    // TESTING: Create some pre-defined tasks with replication instances to run on, and the 
-    // serverless configuration(s) equivalent.
-    if(false) {
-      const tasks = await Tasks.getInstance({ 
-        taskType:TaskType.PROVISIONED, 
-        scope:dmsStack, context, dmsVpc, dmsEndpoints, dmsVpcRole, replicationSubnetGroupId 
-      });
-    }
-
 
     // Add an ingress rule to the source database for the DMS replication service.
     const { sourceDbSecurityGroupId:dbSecurityGroupId="", sourceDbPort } = context;
