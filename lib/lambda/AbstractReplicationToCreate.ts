@@ -109,8 +109,8 @@ export abstract class AbstractReplicationToCreate {
     const suffix = _suffixDate.getTime();
 
     const cricInput = {
-      ReplicationInstanceIdentifier: `${prefix}-instance`,
-      ResourceIdentifier: trimResourceIdentifier(`${prefix}-instance-${suffix}`), // must be unique AND <= 31 characters
+      ReplicationInstanceIdentifier: `${prefix}-instance-${suffix}`,
+      ResourceIdentifier: trimResourceIdentifier(`${prefix}-inst-${suffix}`), // must be unique AND <= 31 characters
       ReplicationInstanceClass: 'dms.t3.medium',
       AllocatedStorage: 50,
       VpcSecurityGroupIds: [ vpcSecurityGroupId ],
@@ -121,7 +121,7 @@ export abstract class AbstractReplicationToCreate {
     } satisfies CreateReplicationInstanceCommandInput
 
     const crtInput = {
-      ReplicationTaskIdentifier: `${prefix}-task`,
+      ReplicationTaskIdentifier: `${prefix}-task-${suffix}`,
       ResourceIdentifier: trimResourceIdentifier(`${prefix}-task-${suffix}`), // must be unique AND <= 31 characters
       SourceEndpointArn,
       TargetEndpointArn,
@@ -150,6 +150,23 @@ export abstract class AbstractReplicationToCreate {
 
     crtInput.ReplicationInstanceArn = instanceArn;
 
+    // Query the instance state until it becomes active (only then can we create the task)
+    let instanceState = cricOutput.ReplicationInstance?.ReplicationInstanceStatus;
+    const maxWaitCycles = 180; // e.g. wait up to 30 minutes
+    const waitSeconds = 10;
+    let waitCycles = 0;
+    while(instanceState !== 'available' && waitCycles < maxWaitCycles) {
+      console.log(`Replication instance not available. Current state: ${instanceState} - waiting ${waitSeconds} seconds to check again...`);
+      await new Promise(res => setTimeout(res, waitSeconds * 1000)); // wait 10 seconds
+      const descOutput = await dms.describeReplicationInstances({ Filters: [{ Name: 'replication-instance-arn', Values: [instanceArn] }] });
+      instanceState = descOutput.ReplicationInstances?.[0]?.ReplicationInstanceStatus;
+      waitCycles++;
+    }
+    if(instanceState !== 'available') {
+      throw new Error(`Replication instance did not become available within expected time. Last known state: ${instanceState}`);
+    }
+    console.log('Replication instance is now available');
+
     const crtOutput = await dms.createReplicationTask(crtInput);
 
     const { ReplicationTask: { ReplicationTaskArn: arn } = {} } = crtOutput;
@@ -165,7 +182,7 @@ export abstract class AbstractReplicationToCreate {
    * @param str 
    * @returns 
    */
-  private trimResourceIdentifier = (str:string) => {
+  private trimResourceIdentifier = (str:string):string => {
     if(str.length <= 31) return str;
     const segments = str.split('-');
     const prefix = segments.slice(0, 2).join('-') + '-';
@@ -173,7 +190,11 @@ export abstract class AbstractReplicationToCreate {
     const maxThirdLen = 31 - (prefix.length + suffix.length);
     // Clip the third segment if needed
     segments[2] = segments[2].slice(0, Math.max(0, maxThirdLen));
-    return [segments[0], segments[1], segments[2], ...segments.slice(3)].join('-');
+    const retval =  [segments[0], segments[1], segments[2], ...segments.slice(3)].join('-').replace(/--+/g, '-');
+    if(retval.length > 31) {
+      return this.trimResourceIdentifier(retval);
+    }
+    return retval;
   }
 
   public set createEnvVars(envVars:ReplicationCreateEnvironmentVariables) {
