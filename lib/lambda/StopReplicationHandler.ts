@@ -92,7 +92,7 @@ export const handler = async (event:ScheduledLambdaInput):Promise<any> => {
       logLastResult(`The replication should be stopped by now, but for some reason is still running. Stopping now.`);
       await replication.stop();
       await replication.waitToStop(5); // wait up to 5 minutes for it to stop
-      if(isRunning) return; // Still running - bail out (this circumstance will already have been logged).
+      if(replication.isRunning) return; // Still running - bail out (this circumstance will already have been logged).
     }
     
     if( ! replication.hasSucceeded) {

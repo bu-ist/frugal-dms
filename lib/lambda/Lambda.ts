@@ -8,6 +8,7 @@ import { AbstractFunction } from "../AbstractFunction";
 import { DmsEndpoints } from "../Endpoint";
 import { DmsVpc } from "../Vpc";
 import { Cron } from "./Cron";
+import { ReplicationCloudWatchLogs } from "./ReplicationLogs";
 
 
 export type StartStopLambdasProps = {
@@ -217,7 +218,7 @@ export class StartStopLambdas extends Construct {
         assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
         description: `Grants actions to the lambda function to perform the related DMS tasks.`,
         inlinePolicies: {
-          'DmsStopReplicationTaskPolicy': new PolicyDocument({
+          [`${functionName}-stop-replication-policy`]: new PolicyDocument({
             statements: [
               new PolicyStatement({
                 actions: [ 
@@ -249,7 +250,21 @@ export class StartStopLambdas extends Construct {
                 effect: Effect.ALLOW
               })
             ]
-          })
+          }),
+          [`${functionName}-log-policy`]: new PolicyDocument({
+            statements: [
+              new PolicyStatement({
+                actions: [ 'logs:DescribeLogGroups' , 'logs:DescribeLogStreams', 'logs:List*' ],
+                resources: [ '*' ],
+                effect: Effect.ALLOW
+              }),
+              new PolicyStatement({
+                actions: [ 'logs:PutRetentionPolicy' ],
+                resources: [ `arn:aws:logs:${Region}:${Account}:${ReplicationCloudWatchLogs.logGroupNameBase(prefix())}-*` ],
+                effect: Effect.ALLOW
+              })
+            ]
+          })  
         }
       }),
       environment: {

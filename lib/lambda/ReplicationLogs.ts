@@ -20,11 +20,13 @@ export class ReplicationCloudWatchLogs {
   private _logGroupNamePattern: string;
   private _dryRun: boolean;
 
+  public static logGroupNameBase = (prefix: string = ''): string => `dms-serverless-replication${prefix ? '-' + prefix : ''}`;
+
   constructor(parms: ReplicationLogsParms) {
     const { suffix, prefix, region='us-east-1', dryRun=false } = parms;
     this._dryRun = dryRun;
     this._region = region;
-    this._logGroupNamePattern = `dms-serverless-replication-${prefix}`;
+    this._logGroupNamePattern = ReplicationCloudWatchLogs.logGroupNameBase(prefix);
     this._logGroupNamePattern += `-${suffix ?? '*'}`;
   }
 
@@ -123,7 +125,8 @@ if(args.length > 1 && args[1].replace(/\\/g, '/').endsWith('lib/lambda/Replicati
     const prefix = () => `${Id}-${Landscape}`;
     
     const replicationLogs = new ReplicationCloudWatchLogs({
-      prefix: prefix(), suffix: '1759384802120', region, dryRun: false
+      // prefix: prefix(), suffix: '1759384802120', region, dryRun: false
+      prefix: prefix(), suffix: undefined, region, dryRun: false
     });
 
     await replicationLogs.setRetentionDays(60);
