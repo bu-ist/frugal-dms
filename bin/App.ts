@@ -7,6 +7,7 @@ import { Context } from '../context/context.ts';
 import { PostgresTarget } from '../lib/PostgresTarget.ts';
 import { VpcRole } from '../lib/Role.ts';
 import { FrugalDmsStack } from '../lib/Stack.ts';
+import { BU_NameTagAspect, TaggingAspect } from '../lib/Tagging.ts';
 
 // Load environment variables from .env file if it exists
 // This allows local development to override context.json values
@@ -27,7 +28,9 @@ const app = new App();
 
 // Get the stack parameters from the context
 app.node.setContext('stack-parms', context);
-const { stack: { Id, Account, Region, Tags: { Service, Function, Landscape } = {} } = {} } = context;
+const { stack: { Id, Account, Region, Tags: { 
+  Service, Function, Landscape, CostCenter, Ticket 
+} = {} } = {} } = context;
 
 // Validate the context parameters for the stack
 if(!Id || !Account || !Region || !Service || !Function || !Landscape) {
@@ -102,9 +105,8 @@ const stackProps: StackProps = {
    */
   const stack = await FrugalDmsStack.getInstance(dmsStackProps);
 
-  // Adding tags into the stackProps does not seem to work - have to apply tags using aspects:
-  Tags.of(stack).add('Service', Service);
-  Tags.of(stack).add('Function', Function);
-  Tags.of(stack).add('Landscape', Landscape);
+  // Apply standard tags to all resources in the stack
+  const standardTags = { Service, Function, Landscape, CostCenter: CostCenter || '', Ticket: Ticket || '' };
+  new TaggingAspect(stack, standardTags).applyTags({ aspect: new BU_NameTagAspect(standardTags) });
 
 })();

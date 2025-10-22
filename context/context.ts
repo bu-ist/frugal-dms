@@ -52,7 +52,7 @@ export class Context implements IContext {
     // Fallback to context.json values
     const context:IContext = <IContext>ctx;
     const {
-      stack: { Id, Account, Region, Tags: { Service, Function, Landscape } = {} } = {},
+      stack: { Id, Account, Region, Tags: { Service, Function, Landscape, CostCenter, Ticket } = {} } = {},
       sourceDbHost, sourceDbPort, sourceDbUser, sourceDbPassword, sourceDbSecretName, sourceDbSecurityGroupId,
       sourceDbVpcId, sourceDbSubnetIds, sourceDbTestTables, sourceDbSchemas, sourceDbLargestLobKB,
       sourceDbEngineName,
@@ -64,7 +64,7 @@ export class Context implements IContext {
       durationForFullLoadMinutes, durationForCdcMinutes
     } = context;
 
-    this.stack = { Id, Account, Region, Tags: { Service, Function, Landscape }, prefix: () => {
+    this.stack = { Id, Account, Region, Tags: { Service, Function, Landscape, CostCenter, Ticket }, prefix: () => {
       return `${Id}-${Landscape}`;
     }} as StackParameters;
 

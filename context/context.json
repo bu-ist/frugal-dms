@@ -4,9 +4,11 @@
     "Account": "770203350335",
     "Region": "us-east-1",
     "Tags": {
-      "Service": "research-administration",
+      "Service": "researchadministration",
       "Function": "kuali",
-      "Landscape": "stg"
+      "Landscape": "stg",
+      "CostCenter": "AWS Kuali",
+      "Ticket": "ENHC2007305"
     }
   },
   "scheduledRunRetryOnFailure": true,
