@@ -10,11 +10,11 @@ export const VerboseReplicationSettings = {
     EnableLogContext: true,
     LogComponents: [
       { Id: "TRANSFORMATION", Severity: "LOGGER_SEVERITY_DEBUG" },
-      { Id: "SOURCE_UNLOAD", Severity: "LOGGER_SEVERITY_DEBUG" },
+      { Id: "SOURCE_UNLOAD", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "TARGET_LOAD", Severity: "LOGGER_SEVERITY_DEBUG" },
       { Id: "IO", Severity: "LOGGER_SEVERITY_DEBUG" },
       { Id: "PERFORMANCE", Severity: "LOGGER_SEVERITY_DEBUG" },
-      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_DEBUG" }
+      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_INFO" }
     ]
   },
   ErrorBehavior: {
