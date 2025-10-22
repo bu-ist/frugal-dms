@@ -260,7 +260,9 @@ export class StartStopLambdas extends Construct {
               }),
               new PolicyStatement({
                 actions: [ 'logs:PutRetentionPolicy' ],
-                resources: [ `arn:aws:logs:${Region}:${Account}:${ReplicationCloudWatchLogs.logGroupNameBase(prefix())}-*` ],
+                resources: [ 
+                  `arn:aws:logs:${Region}:${Account}:log-group:${ReplicationCloudWatchLogs.logGroupNameBase(prefix())}-*`
+                ],
                 effect: Effect.ALLOW
               })
             ]
