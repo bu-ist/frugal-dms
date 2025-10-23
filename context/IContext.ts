@@ -19,6 +19,7 @@ export interface IContext {
   scheduledRunRetryOnFailure?: boolean;
   durationForFullLoadMinutes?: number; // Duration to run a full-load replication before switching to CDC
   durationForCdcMinutes?: number; // Duration to run a CDC replication before stopping it
+  loggingSeverity?: string; // Logging severity level for the replication tasks
 
   sourceDbEngineName: DmsEndpointEngineName; // Source DB engine name
   sourceDbHost: string; // Source DB RDS endpoint

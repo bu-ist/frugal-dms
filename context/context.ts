@@ -12,6 +12,7 @@ export class Context implements IContext {
   public replicationScheduleCronTimezone?: string; // Timezone for the cron expression, defaults to UTC
   public durationForFullLoadMinutes?: number; // Duration to run a full-load replication before switching to CDC
   public durationForCdcMinutes?: number; // Duration to run a CDC replication before stopping it
+  public loggingSeverity?: string; // Logging severity level for the replication tasks
 
   /* ----------------- SOURCE DATABASE ----------------- */
   // Connection
@@ -61,7 +62,7 @@ export class Context implements IContext {
       postgresSecretName, postgresInstanceSize, postgresInstanceIngress,
 
       replicationScheduleCronExpression, replicationScheduleCronTimezone, scheduledRunRetryOnFailure=true,
-      durationForFullLoadMinutes, durationForCdcMinutes
+      durationForFullLoadMinutes, durationForCdcMinutes, loggingSeverity
     } = context;
 
     this.stack = { Id, Account, Region, Tags: { Service, Function, Landscape, CostCenter, Ticket }, prefix: () => {
@@ -96,5 +97,6 @@ export class Context implements IContext {
     this.scheduledRunRetryOnFailure = scheduledRunRetryOnFailure;
     this.durationForFullLoadMinutes = durationForFullLoadMinutes;
     this.durationForCdcMinutes = durationForCdcMinutes;
+    this.loggingSeverity = loggingSeverity;
   }
 }

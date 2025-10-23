@@ -19,7 +19,7 @@ export class ReplicationToCreateSingleTable extends AbstractReplicationToCreate 
    */
   protected getReplicationSettings = (): Promise<any> => {
     const { postgresSchema } = this._createEnvVars;
-    return getReplicationSettings(postgresSchema);
+    return getReplicationSettings({ postgresSchema });
   }
   
   /**

@@ -35,7 +35,7 @@ export class DmsTask extends Construct {
 
     const { stack: { prefix=()=>'undefined' } = {}, postgresSchema } = context;
 
-    const replicationSettings = Object.assign({}, await getReplicationSettings(postgresSchema));
+    const replicationSettings = Object.assign({}, await getReplicationSettings({ postgresSchema }));
     if(sourceDbLargestLobKB > 0) {
       replicationSettings.TargetMetadata = {
         ...replicationSettings.TargetMetadata,

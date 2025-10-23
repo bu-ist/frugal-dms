@@ -19,7 +19,7 @@ export class ReplicationToCreate extends AbstractReplicationToCreate {
    */
   protected getReplicationSettings = async (): Promise<any> => {
     const { largestSourceLobKb:LobMaxSize=0, postgresSchema } = this._createEnvVars;
-    const coreSettings = await getReplicationSettings(postgresSchema)
+    const coreSettings = await getReplicationSettings({ postgresSchema })
     const replicationSettings = Object.assign({}, coreSettings);
     if(LobMaxSize > 0) {
       replicationSettings.TargetMetadata = {

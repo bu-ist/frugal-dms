@@ -1,20 +1,33 @@
 
 
 /**
- * Verbose replication settings. Includes all available settings for detailed logging and error handling.
+ * Standard replication settings. Includes all available settings for moderately detailed logging and error handling.
  * For default values see: https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Tasks.CustomizingTasks.TaskSettings.html
+ * 
+ * Note: To turn up the verbosity of logging, change any one or more of the LogComponents for severity
+ *   - LOGGER_SEVERITY_ERROR
+ *   - LOGGER_SEVERITY_WARNING
+ *   - LOGGER_SEVERITY_INFO
+ *   - LOGGER_SEVERITY_DEBUG
+ *   - LOGGER_SEVERITY_DETAILED_DEBUG
  */
-export const VerboseReplicationSettings = {
+export const StandardReplicationSettings = {
   Logging: {
     EnableLogging: true,
     EnableLogContext: true,
     LogComponents: [
-      { Id: "TRANSFORMATION", Severity: "LOGGER_SEVERITY_DEBUG" },
+      { Id: "TRANSFORMATION", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "SOURCE_CAPTURE", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "SOURCE_UNLOAD", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "TARGET_LOAD", Severity: "LOGGER_SEVERITY_DEBUG" },
-      { Id: "IO", Severity: "LOGGER_SEVERITY_DEBUG" },
-      { Id: "PERFORMANCE", Severity: "LOGGER_SEVERITY_DEBUG" },
-      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_INFO" }
+      { Id: "TARGET_LOAD", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "TARGET_APPLY", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "METADATA_MANAGEMENT", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "IO", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "PERFORMANCE", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "VALIDATOR", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "VALIDATOR_SOURCE", Severity: "LOGGER_SEVERITY_INFO" },
+      { Id: "VALIDATOR_TARGET", Severity: "LOGGER_SEVERITY_INFO" }
     ]
   },
   ErrorBehavior: {
@@ -72,20 +85,54 @@ export const VerboseReplicationSettings = {
 
 
 /**
- * Serverless replication settings. Effectively the same as the verbose settings, but with the
+ * Serverless replication settings. Effectively the same as the standard settings, but with the
  * Logging.LogComponents removed to avoid a not supported error - hence not so verbose.
  */
 export const ServerlessReplicationSettings = {
-  ...VerboseReplicationSettings,
-  Logging: { ...VerboseReplicationSettings.Logging, },
-  ErrorBehavior: { ...VerboseReplicationSettings.ErrorBehavior, },
-  ValidationSettings: { ...VerboseReplicationSettings.ValidationSettings, },
-  ControlTablesSettings: { ...VerboseReplicationSettings.ControlTablesSettings, },
-  TargetMetadata: { ...VerboseReplicationSettings.TargetMetadata, },
-  CheckpointSettings: { ...VerboseReplicationSettings.CheckpointSettings, },
+  ...StandardReplicationSettings,
+  Logging: { ...StandardReplicationSettings.Logging, },
+  ErrorBehavior: { ...StandardReplicationSettings.ErrorBehavior, },
+  ValidationSettings: { ...StandardReplicationSettings.ValidationSettings, },
+  ControlTablesSettings: { ...StandardReplicationSettings.ControlTablesSettings, },
+  TargetMetadata: { ...StandardReplicationSettings.TargetMetadata, },
+  CheckpointSettings: { ...StandardReplicationSettings.CheckpointSettings, },
   FullLoadSettings: { 
-    ...VerboseReplicationSettings.FullLoadSettings, 
+    ...StandardReplicationSettings.FullLoadSettings, 
     // ParallelLoadThreads not available for serverless replications as it is managed automatically based on the DCU settings.
     ParallelLoadThreads: undefined
   },
+} as any;
+
+/**
+ * Serverless replication settings with the Logging.LogComponents modified so that each component with a 
+ * severity of LOGGER_SEVERITY_INFO is replaced with LOGGER_SEVERITY_DEBUG for more verbose logging.
+ */
+export const ServerlessReplicationSettingsDebug = {
+  ...ServerlessReplicationSettings,
+  Logging: {
+    ...ServerlessReplicationSettings.Logging,
+    LogComponents: ServerlessReplicationSettings.Logging.LogComponents.map( (lc: any) => {
+      if(lc.Severity === 'LOGGER_SEVERITY_INFO') {
+        return { ...lc, Severity: 'LOGGER_SEVERITY_DEBUG' };
+      }
+      return lc;
+    })
+  }
+} as any;
+
+/**
+ * Serverless replication settings with the Logging.LogComponents modified so that each component with a 
+ * severity of LOGGER_SEVERITY_INFO is replaced with LOGGER_SEVERITY_WARNING for lower verbosity logging.
+ */
+export const ServerlessReplicationSettingsWarning = {
+  ...ServerlessReplicationSettings,
+  Logging: {
+    ...ServerlessReplicationSettings.Logging,
+    LogComponents: ServerlessReplicationSettings.Logging.LogComponents.map( (lc: any) => {
+      if(lc.Severity === 'LOGGER_SEVERITY_INFO') {
+        return { ...lc, Severity: 'LOGGER_SEVERITY_WARNING' };
+      }
+      return lc;
+    })
+  }
 } as any;

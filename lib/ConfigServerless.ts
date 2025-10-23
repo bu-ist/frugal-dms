@@ -41,7 +41,7 @@ export class DmsConfig {
 
     const { stack: { prefix=()=>'undefined' } = {}, postgresSchema } = context;
 
-    const coreSettings = await getReplicationSettings(postgresSchema);
+    const coreSettings = await getReplicationSettings({ postgresSchema });
     const replicationSettings = Object.assign({}, coreSettings);
     if(sourceDbLargestLobKB > 0) {
       replicationSettings.TargetMetadata = {

@@ -1,4 +1,14 @@
-import { ServerlessReplicationSettings as defaultSettings } from "./default";
+import { 
+  ServerlessReplicationSettings as defaultSettings, 
+  ServerlessReplicationSettingsDebug as debugSettings, 
+  ServerlessReplicationSettingsWarning as warningSettings
+} from "./default";
+
+export enum LogSeverity {
+  WARNING = 'warn',
+  INFO = 'info',
+  DEBUG = 'debug'
+}
 
 /**
  * By default, replication settings are derived from ./default.ts, which where suitable for an
@@ -11,8 +21,9 @@ import { ServerlessReplicationSettings as defaultSettings } from "./default";
  * }
  * @returns 
  */
-export const getReplicationSettings = async (postgresSchema?: string): Promise<any> => {
-
+export const getReplicationSettings = async (parms: { postgresSchema?: string, logSeverity?: LogSeverity }): Promise<any> => {
+  const { postgresSchema, logSeverity = LogSeverity.INFO } = parms;
+  
   const setControlSchema = (settings:any): Object => {
     if(postgresSchema) {
       settings.ControlTablesSettings = {
@@ -30,7 +41,13 @@ export const getReplicationSettings = async (postgresSchema?: string): Promise<a
     return setControlSchema(coreSettings.ServerlessReplicationSettings);
   } 
   catch (error) {
-    return setControlSchema(defaultSettings);
+    switch (logSeverity) {
+      case LogSeverity.DEBUG: // Most verbose
+        return setControlSchema(debugSettings);
+      case LogSeverity.WARNING: // Least verbose
+        return setControlSchema(warningSettings);
+      case LogSeverity.INFO: default: // Middle-of-the-road verbosity
+        return setControlSchema(defaultSettings);
+    }
   }
-
-}
+};

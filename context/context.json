@@ -16,6 +16,7 @@
   "replicationScheduleCronTimezone": "America/New_York",
   "durationForFullLoadMinutes": 300,
   "durationForCdcMinutes": 60,
+  "loggingSeverity": "INFO",
 
   "sourceDbEngineName": "oracle",
   "sourceDbHost": "stg.db.kualitest.research.bu.edu",
