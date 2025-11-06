@@ -21,13 +21,9 @@ export const StandardReplicationSettings = {
       { Id: "SOURCE_UNLOAD", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "TARGET_LOAD", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "TARGET_APPLY", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "METADATA_MANAGEMENT", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "IO", Severity: "LOGGER_SEVERITY_INFO" },
       { Id: "PERFORMANCE", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "VALIDATOR", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "VALIDATOR_SOURCE", Severity: "LOGGER_SEVERITY_INFO" },
-      { Id: "VALIDATOR_TARGET", Severity: "LOGGER_SEVERITY_INFO" }
+      { Id: "VALIDATOR_EXT", Severity: "LOGGER_SEVERITY_INFO" }
     ]
   },
   ErrorBehavior: {
