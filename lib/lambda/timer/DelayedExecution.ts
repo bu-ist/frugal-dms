@@ -1,10 +1,10 @@
 import { CreateScheduleCommand, CreateScheduleCommandInput, DeleteScheduleCommand, DeleteScheduleCommandInput, SchedulerClient, ScheduleState, Target } from "@aws-sdk/client-scheduler";
-import { v4 as uuidv4 } from 'uuid';
-import { EggTimer, PeriodType } from "./EggTimer";
-import { log } from "../Utils";
 import { IContext } from "../../../context/IContext";
+import { log } from "../Utils";
+import { EggTimer, PeriodType } from "./EggTimer";
 
-
+/** Indicates that there is no schedule associated with the delayed execution */
+export const NO_SCHEDULE = 'N/A';
 export interface DelayedExecution {
   startCountdown(timer:EggTimer, Name:string, Description?:string):Promise<void>
 }
@@ -97,6 +97,11 @@ export const PostExecution = () => {
 
       if( ! scheduleName) {
         log({ scheduleName }, 'Cannot delete schedule, missing scheduleName');
+        return;
+      }
+
+      if( scheduleName === NO_SCHEDULE) {
+        log({ scheduleName }, `Skipping deletion of schedule with name ${NO_SCHEDULE}`);
         return;
       }
 

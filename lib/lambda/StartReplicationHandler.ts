@@ -7,7 +7,7 @@ import { ReplicationToCreate } from "./ReplicationToCreate";
 import { ReplicationToCreateSingleTable } from "./ReplicationToCreateSingleTable";
 import { ReplicationToStart } from "./ReplicationToStart";
 import { ReplicationToStartSingleTable } from "./ReplicationToStartSingleTable";
-import { PostExecution, ScheduledLambdaInput } from "./timer/DelayedExecution";
+import { NO_SCHEDULE, PostExecution, ScheduledLambdaInput } from "./timer/DelayedExecution";
 import { getShortIsoString, log, lookupDmsEndpoinArn, lookupSecurityGroupId, lookupVpcAvailabilityZones } from "./Utils";
 import { TaskType } from "./Replication";
 
@@ -190,7 +190,7 @@ export const startReplication = async (parms: StartReplicationParms) => {
 
   await handler({
     groupName: `${prefix()}-schedules`,
-    scheduleName: 'N/A', // There won't be a schedule to delete since this is a manual run
+    scheduleName: NO_SCHEDULE, // There won't be a schedule to delete since this is a manual run
     lambdaInput: {
       ReplicationType,
       StartReplicationType: StartReplicationTaskTypeValue.START_REPLICATION,
