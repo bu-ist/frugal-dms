@@ -80,7 +80,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
    ```
    CREATE PUBLIC DATABASE LINK AWSDMS_DBLINK 
-      CONNECT TO DMS_USER IDENTIFIED BY "x3BMiRKy.TYBNP3T"
+      CONNECT TO DMS_USER IDENTIFIED BY "DMS_USER_PASSWORD"
       USING '(DESCRIPTION=
                (ADDRESS=(PROTOCOL=TCP)(HOST=kuali-oracle-stg.clb9d4mkglfd.us-east-1.rds.amazonaws.com)(PORT=1521))
                (CONNECT_DATA=(SERVICE_NAME=KUALI))
