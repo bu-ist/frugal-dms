@@ -37,6 +37,7 @@ export const StandardReplicationSettings = {
   ValidationSettings: {
     EnableValidation: true, // Validation is off by default
     ValidationMode: "ROW_LEVEL",
+    SkipLobColumns: true,
     ThreadCount: 5,
     FailureMaxCount: 1000,
     RecordFailureDelayInMinutes: 5
