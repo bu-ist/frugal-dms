@@ -10,12 +10,23 @@ import { PostExecution } from "../lib/lambda/timer/DelayedExecution";
 
 enum FactoryTask {
   START_FULL_LOAD = "full-load",
+  START_CDC_LOAD = "cdc-load",
   CREATE_SERVERLESS = "create-serverless",
   CREATE_PROVISIONED = "create-provisioned",
   CANCEL_MIGRATION = "cancel-migration",
 }
 
 const equalsIgnoreCase = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCase();
+
+const isDryRun = (): boolean => {
+  const args = process.argv.slice(3);
+  for(const arg of args) {
+    if(arg.toLowerCase() === 'dryrun') {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * @returns A custom duration in minutes a replication is expected to take and will be used 
@@ -62,6 +73,36 @@ const getMigrationType = (): MigrationTypeValue => {
 }
 
 /**
+ * @returns The custom CDC start position if provided, otherwise undefined.
+ */
+const getCustomCdcStartPosition = (): Date | undefined => {
+  const args = process.argv.slice(3);
+  const isISODate = (s:string): boolean => {
+    const ISOFormat = 'yyyy-MM-ddTHH:mm:ss'; // Example format
+    const ISORegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
+    if(s.length < ISOFormat.length) {
+      return false;
+    }
+    const datePart = s.substring(0, ISOFormat.length);
+    if( ! ISORegex.test(datePart)) {
+      return false;
+    }
+    if(isNaN((new Date(s)).getTime())) {
+      return false;
+    }
+    return true;
+  }
+
+  for(const arg of args) {
+    const date = new Date(arg);
+    if( isISODate(arg) ) {
+      return date;
+    }
+  }
+  return undefined;
+}
+
+/**
  * Remove the next scheduled migration, which will interrupt and terminate the ongoing migration schedule.
  * @param context 
  * @returns 
@@ -96,7 +137,7 @@ const cancelMigration = async (context:IContext) => {
  */
 (async () => {
   const context:IContext = await require('../context/context.json');
-  const { START_FULL_LOAD, CREATE_SERVERLESS, CREATE_PROVISIONED, CANCEL_MIGRATION } = FactoryTask;
+  const { START_FULL_LOAD, START_CDC_LOAD, CREATE_SERVERLESS, CREATE_PROVISIONED, CANCEL_MIGRATION } = FactoryTask;
   const tasks = Object.values(FactoryTask).join(", ");
 
   const task = process.argv[2];
@@ -121,9 +162,29 @@ const cancelMigration = async (context:IContext) => {
         process.exit(1);
       }
       await startReplication({
-          context, 
+          context,
+          dryRun: isDryRun(),
           ReplicationType, 
           customDurationMinutes: getCustomDuration(),
+          isSmokeTest: isSmokeTest(),
+          skipReplicationStart: false,
+          skipDeletionSchedule: false
+        });
+      break;
+
+    case START_CDC_LOAD:
+      const replicationType = getMigrationType();
+      if(replicationType !== MigrationTypeValue.CDC) {
+        console.error(`The ${START_CDC_LOAD} task can only be used with the CDC migration type.
+          Valid migration type is: ${MigrationTypeValue.CDC}`);
+        process.exit(1);
+      }
+      await startReplication({
+          context, 
+          dryRun: isDryRun(),
+          ReplicationType: replicationType, 
+          customDurationMinutes: getCustomDuration(),
+          customCdcStartPosition: getCustomCdcStartPosition(),
           isSmokeTest: isSmokeTest(),
           skipReplicationStart: false,
           skipDeletionSchedule: false

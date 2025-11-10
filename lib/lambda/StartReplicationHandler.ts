@@ -136,8 +136,10 @@ export const handler = async (event:ScheduledLambdaInput):Promise<any> => {
 
 export type StartReplicationParms = {
   context: IContext;
+  dryRun?: boolean;
   ReplicationType: MigrationTypeValue;
   customDurationMinutes?: number;
+  customCdcStartPosition?: Date;
   isSmokeTest?: boolean;
   skipReplicationStart?: boolean;
   skipDeletionSchedule?: boolean;
@@ -145,8 +147,8 @@ export type StartReplicationParms = {
 
 export const startReplication = async (parms: StartReplicationParms) => {
   const { 
-    context, ReplicationType, customDurationMinutes, isSmokeTest=false, 
-    skipReplicationStart=false, skipDeletionSchedule=false 
+    context, ReplicationType, customDurationMinutes, customCdcStartPosition, isSmokeTest=false, 
+    skipReplicationStart=false, skipDeletionSchedule=false, dryRun=false
   } = parms;
 
   const { 
@@ -188,7 +190,7 @@ export const startReplication = async (parms: StartReplicationParms) => {
   process.env.REPLICATION_SCHEDULE_CRON_TIMEZONE = replicationScheduleCronTimezone;
   process.env.STOP_REPLICATION_FUNCTION_ARN = `arn:aws:lambda:${Region}:${Account}:function:${prefix()}-stop-replication-task`;
 
-  await handler({
+  const handlerArgs = {
     groupName: `${prefix()}-schedules`,
     scheduleName: NO_SCHEDULE, // There won't be a schedule to delete since this is a manual run
     lambdaInput: {
@@ -198,9 +200,19 @@ export const startReplication = async (parms: StartReplicationParms) => {
       skipReplicationStart,
       skipDeletionSchedule,
       customDurationMinutes,
-      CdcStartPosition: getShortIsoString(new Date()),
+      CdcStartPosition: getShortIsoString(customCdcStartPosition ?? new Date()),
     } satisfies StartReplicationHandlerInput
-  });
+  };
+
+  log(`Starting replication with the following parameters: ${JSON.stringify(handlerArgs, null, 2)}`);
+
+  if(dryRun) {
+    console.log('Dry run requested. Exiting without starting replication.');
+    return;
+  }
+
+  await handler(handlerArgs);
+
   console.log('Done');
 }
 
@@ -215,13 +227,16 @@ if(args.length > 1 && args[1].replace(/\\/g, '/').endsWith('lib/lambda/StartRepl
 
   (async () => {
     const context:IContext = await require('../../context/context.json');
+
     await startReplication({
       context, 
-      ReplicationType: MigrationTypeValue.FULL_LOAD_AND_CDC,
-      customDurationMinutes: 180,
+      ReplicationType: MigrationTypeValue.CDC,
+      customDurationMinutes: 60,
+      customCdcStartPosition: new Date("2025-11-10T01:44:58"),
       skipDeletionSchedule: false,
       skipReplicationStart: false,
-      isSmokeTest: true
+      isSmokeTest: false
     });
+
   })();
 }

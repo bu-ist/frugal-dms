@@ -25,14 +25,39 @@ Below are a few administrative commands you can run to start or end that cycle, 
   ```
 
   **Testing:** As part of the app configuration, the `./context/context.json` file can contain a `sourceDbTestTables` entry that will indicate the replication configuration should include a filter for source tables that reflect the single *(or few)* test tables for quick replication of a small amount of data. You would typically start a migration this way if you were testing or debugging and were only interested in the scheduling itself, or you wanted a quick way to see if CDC operation was successfully capturing data changes.
-  To indicate you want to start a reduced migration like this, include a `"smoketest"` parameter to the command:
+  To indicate you want to start a reduced migration like this, include a `"smoketest"` parameter to the command.
+  You can also add a `"dryrun"` parameter to print to the console the final command arguments, but stop short of running the command itself
 
   ```
-  npm run full-load 60 smoketest
+  npm run full-load 60 smoketest dryrun
   ```
 
-   *NOTE: Parameter order or case does not matter.*
-    
+  *NOTE: Parameter order or case does not matter.*
+
+- ### Start a CDC load
+
+  In the event that a cdc operation fails and the cycle of starting and stopping replications is interrupted, you may want to simply want to restart that cycle by creating another cdc-only migration with a cdcStartPosition set to the same value as the failed migration.
+  Run the command below for a migration that runs only in CDC mode with a `cdcStartPosition` set to a custom ISO-formatted date.
+
+  ```
+  npm run cdc-load 2025-11-10T06:44:58
+  ```
+
+  Or to indicate a `cdcStartPosition` of the current time:
+
+  ```
+  npm run cdc-load 
+  ```
+
+  The other arguments available for a full-load are also available for a cdc replication:
+
+  ```
+  npm run cdc-load 60 2025-11-10T06:44:58 smoketest dryrun
+  ```
+
+  This call prints out the command to run a cdc migration that lasts for an hour, only operates against test tables, and has a custom `cdcStartPosition`.
+
+  *NOTE: Parameter order or case does not matter.*
 
 - ### Stop replication
 

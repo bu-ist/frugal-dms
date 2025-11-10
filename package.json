@@ -14,6 +14,7 @@
     "destroy": "cdk destroy -f --all --no-rollback --require-approval never",
     "redeploy": "npm run destroy && sleep 60 && npm run deploy",
     "full-load": "ts-node bin/factory.ts full-load",
+    "cdc-load": "ts-node bin/factory.ts cdc-load cdc",
     "create-provisioned": "ts-node bin/factory.ts create-provisioned",
     "create-serverless": "ts-node bin/factory.ts create-serverless",
     "cancel-migration": "ts-node bin/factory.ts cancel-migration",
