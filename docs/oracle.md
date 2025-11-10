@@ -5,7 +5,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
 1. **Create a "DMS_USER"** in the source oracle database with privileges and configurations needed when using an AWS-managed Oracle database with AWS DMS. Related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Source.Oracle.html#CHAP_Source.Oracle.Amazon-Managed.Privileges).
 
-   ```
+   ```sql
    CREATE USER DMS_USER
        IDENTIFIED BY "user_password"
        DEFAULT TABLESPACE KUALI_DATA
@@ -22,6 +22,11 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
    GRANT SELECT_CATALOG_ROLE TO DMS_USER;
    GRANT SELECT ANY DICTIONARY TO DMS_USER;
    GRANT UNLIMITED TABLESPACE TO DMS_USER;
+   
+   GRANT EXECUTE on DBMS_LOGMNR to DMS_USER;
+   GRANT SELECT on V_$LOGMNR_LOGS to DMS_USER;
+   GRANT SELECT on V_$LOGMNR_CONTENTS to DMS_USER;
+   
    
    exec rdsadmin.rdsadmin_util.alter_supplemental_logging('ADD');
    exec rdsadmin.rdsadmin_util.alter_supplemental_logging('ADD','PRIMARY KEY');
@@ -78,7 +83,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
 2. **Create a "AWSDMS_DBLINK" database link**
 
-   ```
+   ```sql
    CREATE PUBLIC DATABASE LINK AWSDMS_DBLINK 
       CONNECT TO DMS_USER IDENTIFIED BY "DMS_USER_PASSWORD"
       USING '(DESCRIPTION=
@@ -89,7 +94,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
    Test connectivity with:
 
-   ```
+   ```sql
    select 1 from dual@AWSDMS_DBLINK
    ```
 
@@ -98,7 +103,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
    Setting a correct value means getting an idea of what the largest LOB field in the source database currently is.
    A script for determining this for an oracle schema is as follows:
 
-   ```
+   ```sql
    SET SERVEROUTPUT ON SIZE UNLIMITED
    DECLARE
        TYPE maxlob_rec IS RECORD (
@@ -200,7 +205,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
    - **Inspect current log depth:** To get a rough idea as to how far back your source database redo logs go back query the database to get the earliest log entries. For oracle such a query looks like this:
 
-     ```
+     ```sql
      SELECT 
        TO_CHAR(MIN(FIRST_TIME) + INTERVAL '5' MINUTE, 'YYYY-MM-DD"T"HH24:MI:SS') as safe_earliest_time,
        MIN(FIRST_CHANGE#) + 1000 as safe_earliest_scn
@@ -212,7 +217,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
    - **[Increase storage](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.ModifyingExisting.html):** If you need to do so, increasing the redo log retention will almost certainly result in an increase in database storage requirements. To accommodate this increase if current storage is not enough, either increase the "Storage" in GB of the "Primary Storage" column of the "Configuration" view of the RDS dashboard for the instance, and/or turn on **[Storage Autoscaling](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html)**. If you are not going to use storage autoscaling, the following will give you a clue as to how much storage you may need by displaying how much was output in the last 48 hours:
 
-     ```
+     ```sql
      # Set "X" to 48
      SELECT SUM(BLOCKS * BLOCK_SIZE) bytes 
      FROM V$ARCHIVED_LOG
@@ -221,7 +226,7 @@ The related AWS documentation is [here](https://docs.aws.amazon.com/dms/latest/u
 
    - **[Set archive log retention](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.Oracle.CommonDBATasks.RetainRedoLogs.html):** Use the following for an Oracle RDS instance to set the log retention to 48 hours:
 
-     ```
+     ```sql
      begin
          rdsadmin.rdsadmin_util.set_configuration(
              name  => 'archivelog retention hours',
