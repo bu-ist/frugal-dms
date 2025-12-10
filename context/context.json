@@ -4,7 +4,7 @@
     "Account": "770203350335",
     "Region": "us-east-1",
     "Tags": {
-      "Service": "researchadministration",
+      "Service": "research-administration",
       "Function": "kuali",
       "Landscape": "stg",
       "CostCenter": "AWS Kuali",
@@ -24,7 +24,7 @@
   "sourceDbUser": "DMS_USER",
   "sourceDbPassword": "",
   "sourceDbSecretName": "kuali/stg/kuali-oracle-rds-app-password",
-  "sourceDbSecurityGroupId": "sg-0b8b04f9cf045f812",
+  "sourceDbSecurityGroupId": "sg-019199c2d80636821",
   "sourceDbVpcId": "vpc-0290de1785982a52f",
   "sourceDbLargestLobKB": 7000,
   "sourceDbSubnetIds": [
@@ -35,7 +35,7 @@
     "KCOEUS"
   ],
   "sourceDbTestTables": [
-    { "schemaName": "KCOEUS", "tableNames": [ "DMS_SMOKE_TEST2" ] }
+    { "schemaName": "KCOEUS", "tableNames": [ "DMS_SMOKE_TEST" ] }
   ],
 
   "postgresHost": "ist-pg-dl-dev01.bu.edu",

@@ -12,6 +12,70 @@ This is a CDK project to build DMS serverless resources for scheduled replicatio
 In order to circumvent this, when the CDC replication has reached a stopped state, the configuration upon which it was based must be [deleted](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/database-migration-service/command/DeleteReplicationConfigCommand/) and later [recreated](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/database-migration-service/command/CreateReplicationConfigCommand) when a new replication needs to be [started](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/database-migration-service/command/StartReplicationCommand). Deprovisioning of the underlying resources is forced by the deletion of the configuration.
 This is core theme behind this stack and is facilitated by [EventBridge Scheduler](https://docs.aws.amazon.com/eventbridge/latest/userguide/using-eventbridge-scheduler.html).
 
+## Architecture Overview
+
+The following sequence diagram illustrates the cost-optimized DMS replication workflow, highlighting how EventBridge Scheduler manages the lifecycle of DMS configurations to minimize idle costs:
+
+```mermaid
+sequenceDiagram
+    participant User as User (CLI)
+    participant EB as EventBridge Scheduler
+    participant StartLambda as Start Replication Handler
+    participant StopLambda as Stop Replication Handler
+    participant DMS as DMS Serverless
+    participant SourceDB as Source Database
+    participant TargetDB as Target Postgres
+    participant CW as CloudWatch Logs
+
+    Note over User,CW: Initial Full Load + CDC Setup
+    User->>StartLambda: npm run full-load
+    StartLambda->>DMS: Create Replication Config
+    StartLambda->>DMS: Start Replication (Full Load)
+    StartLambda->>EB: Schedule Stop after durationForFullLoadMinutes
+    
+    Note over DMS,TargetDB: Full Load Phase
+    DMS->>SourceDB: Extract all data
+    DMS->>TargetDB: Load initial dataset
+    DMS->>CW: Log full load progress
+    
+    Note over DMS,CW: Automatic CDC Transition
+    DMS->>DMS: Switch to CDC mode when full load complete
+    DMS->>CW: Log CDC start indicators
+    
+    Note over EB,StopLambda: Scheduled Cost Optimization
+    EB->>StopLambda: Trigger scheduled stop
+    StopLambda->>DMS: Stop Replication
+    StopLambda->>DMS: Delete Replication Config (force deprovision)
+    StopLambda->>EB: Schedule next CDC cycle (cronExpression)
+    
+    Note over EB,CW: Repeating CDC Cycles (Cost-Optimized)
+    loop Every replicationScheduleCronExpression (e.g., daily)
+        EB->>StartLambda: Trigger CDC restart
+        StartLambda->>DMS: Create new Replication Config
+        StartLambda->>DMS: Start Replication (CDC only, from cdcStartPosition)
+        StartLambda->>EB: Schedule stop after durationForCdcMinutes
+        
+        Note over DMS,TargetDB: CDC Catch-up Phase
+        DMS->>SourceDB: Capture change log data
+        DMS->>TargetDB: Apply incremental changes
+        DMS->>CW: Log CDC progress
+        
+        Note over EB,StopLambda: Cost-saving Cleanup
+        EB->>StopLambda: Trigger scheduled stop
+        StopLambda->>DMS: Stop Replication
+        StopLambda->>DMS: Delete Config (avoid idle costs)
+        StopLambda->>EB: Schedule next cycle
+    end
+    
+    Note over User,EB: Manual Operations
+    User->>StopLambda: npm run cancel-migration (if needed)
+```
+
+**Key Cost Optimization Points:**
+- **Configuration Deletion**: Unlike traditional DMS, configurations are deleted after each cycle to force resource deprovisioning and eliminate idle costs
+- **Scheduled Cycles**: EventBridge Scheduler manages precise timing to minimize runtime while maintaining acceptable data lag
+- **CDC Positioning**: Each new cycle resumes from where the previous one left off using `cdcStartPosition`
+
 ## Prerequisites:
 
 - **Git**
